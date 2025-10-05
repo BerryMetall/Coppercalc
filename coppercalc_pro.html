@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CopperCalc Pro – Kupferkabel Kalkulator</title>
+<meta name="color-scheme" content="dark">
+<style>
+  :root{
+    --bg:#0b1220; --card:#0f172a; --muted:#9ca3af; --fg:#e5e7eb; --line:#233048;
+    --accent:#22c55e; --accent2:#60a5fa; --bad:#ef4444; --mid:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--fg);}
+  header{padding:20px 16px 10px; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; background:linear-gradient(180deg, rgba(11,18,32,.95), rgba(11,18,32,.85)); backdrop-filter:blur(6px)}
+  h1{margin:0; font-size:22px; letter-spacing:.3px}
+  .sub{color:var(--muted); font-size:13px; margin-top:4px}
+  main{padding:14px; max-width:1200px; margin:0 auto;}
+  .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:14px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .span6{grid-column:span 6}
+  .span12{grid-column:span 12}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+  input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0a1427; color:var(--fg);}
+  .row3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .row4{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  .row2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  @media(max-width:900px){ .span6{grid-column:span 12} .row4{grid-template-columns:1fr 1fr} .row3{grid-template-columns:1fr 1fr} }
+  .actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  button{background:#0a1427; color:var(--fg); border:1px solid var(--line); padding:10px 12px; border-radius:10px; cursor:pointer}
+  button:hover{border-color:#3c4a66}
+  .pill{padding:2px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line)}
+  .ok{background:rgba(34,197,94,.12); color:#86efac; border-color:rgba(34,197,94,.35)}
+  .mid{background:rgba(245,158,11,.12); color:#fcd34d; border-color:rgba(245,158,11,.3)}
+  .bad{background:rgba(239,68,68,.12); color:#fecaca; border-color:rgba(239,68,68,.3)}
+  .tag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); font-size:12px; color:var(--muted);}
+  .small{font-size:12px; color:var(--muted)}
+
+  /* table */
+  .tableWrap{overflow:auto; border-radius:12px; border:1px solid var(--line)}
+  table{width:100%; border-collapse:separate; border-spacing:0; font-size:13px; min-width:950px; }
+  thead th{position:sticky; top:0; background:#0a1427; color:var(--muted); text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); cursor:pointer; white-space:nowrap}
+  tbody td{padding:10px 8px; border-bottom:1px solid #16233b}
+  tr:last-child td{border-bottom:0}
+  .mono{font-variant-numeric:tabular-nums; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .kpi{font-weight:600}
+  .warn{margin-top:8px; color:#fca5a5; display:none}
+
+  /* footer */
+  footer{padding:18px; text-align:center; color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>CopperCalc Pro</h1>
+  <div class="sub">Handel vs. Granulieren · Live-Kalkulation · mobil optimiert</div>
+</header>
+<main>
+  <div class="grid">
+    <section class="card span6">
+      <h3 style="margin:0 0 8px">Preise</h3>
+      <div class="row3">
+        <div><label>🟦 Einkaufspreis Kabel (€/kg)</label><input id="buy" inputmode="decimal" value="2,00"></div>
+        <div><label>🟩 Verkaufspreis Kabel (€/kg)</label><input id="sell" inputmode="decimal" value="2,70"></div>
+        <div><label>🟧 Kupfergranulat (€/kg)</label><input id="cuPrice" inputmode="decimal" value="8,30"></div>
+      </div>
+      <div class="small" style="margin-top:6px">Komma <b>oder</b> Punkt ist ok (z. B. 0,35 oder 0.35).</div>
+    </section>
+
+    <section class="card span6">
+      <h3 style="margin:0 0 8px">Kosten Granulierung</h3>
+      <div class="row4">
+        <div><label>⚡ Stromleistung (kW)</label><input id="powerKW" inputmode="decimal" value="13"></div>
+        <div><label>⚡ Strompreis (€/kWh)</label><input id="energyPrice" inputmode="decimal" value="0,35"></div>
+        <div><label>🚀 Durchsatz (kg/h)</label><input id="throughput" inputmode="decimal" value="150"></div>
+        <div><label>👷 Arbeitslohn (€/h)</label><input id="laborPH" inputmode="decimal" value="17"></div>
+      </div>
+      <div class="row2" style="margin-top:10px">
+        <div><label>🧱 PVC-Entsorgung (€/kg PVC)</label><input id="pvcDisposal" inputmode="decimal" value="0"></div>
+        <div><label>📉 Abfallquote (%)</label><input id="lossPct" inputmode="decimal" value="0,5"></div>
+      </div>
+    </section>
+
+    <section class="card span12">
+      <div class="actions">
+        <button id="btnRecalc">Neu berechnen</button>
+        <button id="btnSort">Nach Netto-Mehrwert sortieren (↓)</button>
+        <button id="btnCSV">CSV exportieren</button>
+        <span class="small">Ampel: <span class="pill ok">> +1,50 €/kg</span> · <span class="pill mid">0 bis +1,50 €/kg</span> · <span class="pill bad">< 0 €/kg</span></span>
+      </div>
+      <div class="warn" id="warn">Fehler bei der Berechnung – Eingaben prüfen.</div>
+      <div class="tableWrap" style="margin-top:10px">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th data-i="0">Kabeltyp</th>
+              <th data-i="1">Cu-%</th>
+              <th data-i="2">Cu-Wert (€/kg)</th>
+              <th data-i="3">Wert nach Granulieren (mit Abfall) (€/kg)</th>
+              <th data-i="4">Energie (€/kg)</th>
+              <th data-i="5">Arbeit (€/kg)</th>
+              <th data-i="6">Entsorgung (€/kg)</th>
+              <th data-i="7">Einkauf (€/kg)</th>
+              <th data-i="8">Verkauf (€/kg)</th>
+              <th data-i="9">Gewinn Handel (€/kg)</th>
+              <th data-i="10">Gewinn Granulieren BRUTTO (€/kg)</th>
+              <th data-i="11">Gewinn Granulieren NETTO (€/kg)</th>
+              <th data-i="12">Mehrwert ggü. Handel NETTO (€/kg)</th>
+              <th>Signal</th>
+              <th>Typ</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>© CopperCalc Pro</footer>
+
+<script>
+// --- Daten: vollständiger Satz (NYM-J & NYY-J, praxisübliche Größen) ---
+var cables=[
+  // NYM-J
+  {type:"NYM-J",name:"NYM-J 3×1,5",cu:31.9},
+  {type:"NYM-J",name:"NYM-J 4×1,5",cu:36.2},
+  {type:"NYM-J",name:"NYM-J 5×1,5",cu:37.9},
+  {type:"NYM-J",name:"NYM-J 3×2,5",cu:37.9},
+  {type:"NYM-J",name:"NYM-J 4×2,5",cu:41.7},
+  {type:"NYM-J",name:"NYM-J 5×2,5",cu:44.4},
+  {type:"NYM-J",name:"NYM-J 3×4",cu:43.4},
+  {type:"NYM-J",name:"NYM-J 5×4",cu:46.8},
+  {type:"NYM-J",name:"NYM-J 3×6",cu:54.9},
+  {type:"NYM-J",name:"NYM-J 5×6",cu:53.3},
+  {type:"NYM-J",name:"NYM-J 3×10",cu:61.9},
+  {type:"NYM-J",name:"NYM-J 5×10",cu:56.5},
+  {type:"NYM-J",name:"NYM-J 3×16",cu:56.3},
+  {type:"NYM-J",name:"NYM-J 5×16",cu:56.9},
+  {type:"NYM-J",name:"NYM-J 3×25",cu:58.5},
+  {type:"NYM-J",name:"NYM-J 5×25",cu:60.3},
+  {type:"NYM-J",name:"NYM-J 3×35",cu:64.3},
+  {type:"NYM-J",name:"NYM-J 5×35",cu:77.8},
+  // NYY-J
+  {type:"NYY-J",name:"NYY-J 3×1,5",cu:22.6},
+  {type:"NYY-J",name:"NYY-J 4×1,5",cu:26.4},
+  {type:"NYY-J",name:"NYY-J 5×1,5",cu:26.7},
+  {type:"NYY-J",name:"NYY-J 3×2,5",cu:30.0},
+  {type:"NYY-J",name:"NYY-J 4×2,5",cu:33.1},
+  {type:"NYY-J",name:"NYY-J 5×2,5",cu:34.3},
+  {type:"NYY-J",name:"NYY-J 3×4",cu:34.9},
+  {type:"NYY-J",name:"NYY-J 5×4",cu:40.0},
+  {type:"NYY-J",name:"NYY-J 3×6",cu:41.2},
+  {type:"NYY-J",name:"NYY-J 5×6",cu:47.2},
+  {type:"NYY-J",name:"NYY-J 3×10",cu:49.7},
+  {type:"NYY-J",name:"NYY-J 5×10",cu:54.6},
+  {type:"NYY-J",name:"NYY-J 3×16",cu:58.5},
+  {type:"NYY-J",name:"NYY-J 5×16",cu:61.4},
+  {type:"NYY-J",name:"NYY-J 3×25",cu:61.5},
+  {type:"NYY-J",name:"NYY-J 5×25",cu:61.5},
+  {type:"NYY-J",name:"NYY-J 3×35",cu:70.0},
+  {type:"NYY-J",name:"NYY-J 5×35",cu:70.0}
+];
+
+var sortDesc=true;
+
+function toNum(v){ if(v==null) return 0; v=String(v).trim().replace(/\s/g,'').replace(',','.'); var x=parseFloat(v); return isFinite(x)?x:0; }
+function euro(n){ return (Math.round(n*100)/100).toFixed(2); }
+function ampel(x){ return x<0 ? '<span class="pill bad">rot</span>' : (x<1.5?'<span class="pill mid">gelb</span>':'<span class="pill ok">grün</span>'); }
+
+function getInputs(){
+  var buy=toNum(document.getElementById('buy').value);
+  var sell=toNum(document.getElementById('sell').value);
+  var cu=toNum(document.getElementById('cuPrice').value);
+  var kw=toNum(document.getElementById('powerKW').value);
+  var ePrice=toNum(document.getElementById('energyPrice').value);
+  var thr=Math.max(1,toNum(document.getElementById('throughput').value));
+  var laborPH=toNum(document.getElementById('laborPH').value);
+  var pvc=toNum(document.getElementById('pvcDisposal').value);
+  var loss=toNum(document.getElementById('lossPct').value)/100;
+  var energyPH=kw*ePrice;
+  var energyPKG=energyPH/Math.max(thr,1);
+  var laborPKG=laborPH/Math.max(thr,1);
+  return {buy:buy,sell:sell,cu:cu,energyPKG:energyPKG,laborPKG:laborPKG,pvc:pvc,loss:loss};
+}
+
+function recalc(){
+  var warn=document.getElementById('warn'); warn.style.display='none';
+  try{
+    var inp=getInputs();
+    var tradeProfit=inp.sell-inp.buy;
+    var rows=cables.map(function(c){
+      var cuPct=c.cu/100;
+      var cuVal=cuPct*inp.cu;
+      var granWithLoss=cuPct*(1-inp.loss)*inp.cu;
+      var energy=inp.energyPKG, labor=inp.laborPKG, disposal=(1-cuPct)*inp.pvc;
+      var granGross=cuVal - inp.buy;
+      var granNet = granWithLoss - inp.buy - energy - labor - disposal;
+      var netAdv = granNet - tradeProfit;
+      return {type:c.type,name:c.name,cu:c.cu,cuVal:cuVal,granWithLoss:granWithLoss,energy:energy,labor:labor,disposal:disposal,
+              buy:inp.buy,sell:inp.sell,tradeProfit:tradeProfit,granGross:granGross,granNet:granNet,netAdv:netAdv};
+    });
+    rows.sort(function(a,b){ return sortDesc ? (b.netAdv - a.netAdv) : (a.netAdv - b.netAdv); });
+    var tbd=document.querySelector('#tbl tbody'); tbd.innerHTML='';
+    rows.forEach(function(r){
+      var tr=document.createElement('tr');
+      tr.innerHTML = '<td>'+r.name+'</td>'+
+        '<td class="mono">'+r.cu.toFixed(1)+'</td>'+
+        '<td class="mono">'+euro(r.cuVal)+'</td>'+
+        '<td class="mono">'+euro(r.granWithLoss)+'</td>'+
+        '<td class="mono">'+euro(r.energy)+'</td>'+
+        '<td class="mono">'+euro(r.labor)+'</td>'+
+        '<td class="mono">'+euro(r.disposal)+'</td>'+
+        '<td class="mono">'+euro(r.buy)+'</td>'+
+        '<td class="mono">'+euro(r.sell)+'</td>'+
+        '<td class="mono">'+euro(r.tradeProfit)+'</td>'+
+        '<td class="mono">'+euro(r.granGross)+'</td>'+
+        '<td class="mono kpi">'+euro(r.granNet)+'</td>'+
+        '<td class="mono kpi">'+euro(r.netAdv)+'</td>'+
+        '<td>'+ampel(r.netAdv)+'</td>'+
+        '<td><span class="tag">'+r.type+'</span></td>';
+      tbd.appendChild(tr);
+    });
+  }catch(e){
+    warn.textContent='Fehler: '+e.message; warn.style.display='block';
+  }
+}
+
+function exportCSV(){
+  var rows=[].slice.call(document.querySelectorAll('#tbl tr')).map(function(tr){
+    return [].slice.call(tr.children).slice(0,13).map(function(td){
+      return '"' + td.innerText.replace(/"/g,'""') + '"';
+    }).join(',');
+  }).join('\n');
+  var blob=new Blob([rows],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='coppercalc_pro.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+(function init(){
+  document.getElementById('btnRecalc').addEventListener('click', recalc);
+  document.getElementById('btnSort').addEventListener('click', function(){ sortDesc=!sortDesc; recalc(); });
+  document.getElementById('btnCSV').addEventListener('click', exportCSV);
+  [].forEach.call(document.querySelectorAll('input'), function(el){ el.addEventListener('input', recalc); });
+  recalc();
+})();
+</script>
+</body>
+</html>
